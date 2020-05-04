@@ -1,15 +1,17 @@
-import React from 'react';
+import React from "react";
 
+const UserForm = (props) => {
+  const { id, avatar, name, deleteFunction } = props;
+  return (
+    <>
+      <h3>{id}</h3>
+      <img src={avatar} alt={name} />
 
+      <button value={id} onClick={deleteFunction}>
+        Delete Picture
+      </button>
+    </>
+  );
+};
 
-const UserForm = (props) =>{
-    const{name, avatar} = props;
-    return(
-        <div>
-            <h3>{name}</h3>
-            <img src={avatar} alt=""/>
-        </div>
-    )
-
-}
 export default UserForm;

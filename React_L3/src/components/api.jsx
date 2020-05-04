@@ -1,72 +1,115 @@
-import React from 'react';
-import axios from 'axios'
-import UserForm from './userForm';
+import React from "react";
+import UserForm from "./userForm";
+import { getUser, postUser, deleteUser, imageValidate } from "./api";
 
-
-class Api extends React.Component{
-  constructor(props){
-  super(props);
-  this.state = { 
-    productIds: [],
-    loading: true,
-    formName:" ",
-    formAvatar: " ",
+class Api extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      users: [],
+      loading: true,
+      formName: "",
+      formAvatar: "",
+    };
   }
-}
-componentDidMount(){
+
+  componentDidMount() {
     this.loadUsers();
-} 
+  }
 
-
-async loadUsers(){
-    const response = await axios.get('https://5dd14f8d15bbc2001448d07d.mockapi.io/products'
-    );
-    this.setState({productIds:response.data,
-    loading:false,
-});
-}
-
- async handleOnSumbmit(event){
-    event.preventDefault();
-    const{ formName, formAvatar} = this.state;
-    axios.post('https://5dd14f8d15bbc2001448d07d.mockapi.io/products',
-    {
-        name:formName, 
-        avatar:formAvatar
+  async loadUsers() {
+    const response = await getUser();
+    this.setState({
+      users: response.data,
+      loading: false,
     });
+    console.log(response.data);
+  }
 
-    this.loadUsers();
+  async deleteUsers(event, id) {
+    event.preventDefault();
+    const response = await deleteUser(id).then(() => {
+      this.loadUsers();
+    });
+    console.log(response);
+  }
 
+
+  async imageValidate(url) {
+    const response = await imageValidate(url);
+    if (response.status >= 200 && response.status < 300) {
+      console.log("yes");
+    } else {
+      return false;
+    }
+  }
+
+  async handleOnSubmit(event) {
+    event.preventDefault();
+    const { formName, formAvatar } = this.state;
+    if(formName.length > 5 && this.imageValidate(formAvatar)){
+      const response = await postUser({
+        name: formName,
+        avatar: formAvatar,
+      });
+      console.log(formAvatar);
+      console.log(response.data);
+      this.loadUsers();
+    }
 }
 
-render(){
-  const{ formName, formAvatar, productIds, loading} = this.state;
-  return(
-    <>
-    <form onSubmit = {(event)=> {this.handleOnSumbmit(event)}}>
-      <input type ="text"
-        name= "name"
-        value={formName}
-        id ="name"
-        placeholder ="name"
-        onChange ={(event) => this.setState({formName: event.target.value})}
-        />
-        <input type = "text"
-        name = "avatar"
-        value = {formAvatar}
-        id = "avatar"
-        placeholder ="avatar"
-        onChange ={(event) => this.setState({formAvatar: event.target.value})}
-        />
-        <button type = "submit">New user</button>
-    </form>
-      {loading && <span>Loading...</span>}
-      {productIds.map((productId) => (
-        <UserForm key={productId.id} name ={productId.name} avatar ={productId.avatar}/>
-      ))}
-    </>
-  );
-}
+  render() {
+    const { formName, formAvatar, users, loading } = this.state;
+    return (
+      <>
+        <form
+          onSubmit={(event) => {
+            this.handleOnSubmit(event);
+          }}
+        >
+          <input
+            type="text"
+            name="name"
+            value={formName}
+            placeholder="name"
+            onChange={(event) =>
+              this.setState({ formName: event.target.value })
+            }
+          />
+
+          <input
+            type="text"
+            name="name"
+            value={formAvatar}
+            placeholder="avatar"
+            onChange={(event) =>
+              this.setState({ formAvatar: event.target.value })
+            }
+          />
+          <button type="submit">New User</button>
+        </form>
+        {loading && <span>Loading...</span>}
+        {users.map((user) => (
+          <UserForm
+            key={user.id}
+            id={user.id}
+            avatar={user.avatar}
+            deleteFunction={(event) => {
+              this.deleteUsers(event, user.id);
+            }}
+          />
+        ))}
+      </>
+    );
+  }
 }
 
 export default Api;
+
+
+
+
+
+
+
+
